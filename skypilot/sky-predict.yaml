@@ -1,0 +1,64 @@
+# SkyPilot: Run Predictions
+# Purpose: Run inference and generate visualizations
+# Usage: sky exec onboard skypilot/sky-predict.yaml --env CHECKPOINT_PATH=outputs/best.ckpt
+#
+# Prerequisites:
+#   1. Cluster launched with sky-launch.yaml
+#   2. Model trained (checkpoint exists)
+#
+# Examples:
+#   sky exec onboard skypilot/sky-predict.yaml --env CHECKPOINT_PATH=outputs/mini-gatv2-20251226/checkpoints/best.ckpt
+#   sky exec onboard skypilot/sky-predict.yaml --env CHECKPOINT_PATH=outputs/best.ckpt --env "PREDICT_OVERRIDES=visualization.enabled=false"
+
+name: onboard-predict
+
+envs:
+  DATA_DIR: /data/DeepJEB
+  CHECKPOINT_PATH: ""
+  PREDICT_OVERRIDES: ""
+
+run: |
+  echo "============================================"
+  echo "DeepJEB Prediction"
+  echo "============================================"
+  echo "DATA_DIR: ${DATA_DIR}"
+  echo "Checkpoint: ${CHECKPOINT_PATH}"
+  echo "Overrides: ${PREDICT_OVERRIDES}"
+  echo "============================================"
+
+  cd ~/sky_workdir
+  export PATH="$HOME/.local/bin:$PATH"
+  source .venv/bin/activate
+
+  # Ensure GPU is visible
+  export CUDA_VISIBLE_DEVICES=0
+
+  # Validate checkpoint path
+  if [ -z "${CHECKPOINT_PATH}" ]; then
+    echo "ERROR: CHECKPOINT_PATH is required"
+    echo "Usage: sky exec onboard skypilot/sky-predict.yaml --env CHECKPOINT_PATH=outputs/best.ckpt"
+    exit 1
+  fi
+
+  if [ ! -f "${CHECKPOINT_PATH}" ]; then
+    echo "ERROR: Checkpoint not found: ${CHECKPOINT_PATH}"
+    echo "Available checkpoints:"
+    find ~/sky_workdir/outputs -name "*.ckpt" 2>/dev/null | head -10
+    exit 1
+  fi
+
+  # Show GPU info
+  nvidia-smi --query-gpu=name,memory.total --format=csv
+
+  # Run prediction
+  # PREDICT_OVERRIDES format: "key1=val1 key2=val2" -> converted to "-o key1=val1 -o key2=val2"
+  if [ -n "${PREDICT_OVERRIDES}" ]; then
+    OVERRIDE_ARGS=$(echo "${PREDICT_OVERRIDES}" | sed 's/ / -o /g')
+    python -m tasks.deepjeb predict -m ${CHECKPOINT_PATH} -o ${OVERRIDE_ARGS}
+  else
+    python -m tasks.deepjeb predict -m ${CHECKPOINT_PATH}
+  fi
+
+  echo "============================================"
+  echo "Prediction completed!"
+  echo "============================================"

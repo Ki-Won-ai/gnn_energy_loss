@@ -1,0 +1,27 @@
+train:
+- sample_492_139.h5
+- sample_208_400.h5
+- sample_8_497.h5
+- sample_428_113.h5
+- sample_486_267.h5
+- sample_76_483.h5
+- sample_572_86.h5
+- sample_424_395.h5
+- sample_291_511.h5
+- sample_472_389.h5
+- sample_432_485.h5
+- sample_519_390.h5
+- sample_101_86.h5
+- sample_371_249.h5
+- sample_473_289.h5
+- sample_411_198.h5
+- sample_475_129.h5
+- sample_421_448.h5
+- sample_114_28.h5
+- sample_565_576.h5
+valid:
+- sample_21_25.h5
+- sample_511_433.h5
+- sample_575_592.h5
+- sample_447_255.h5
+- sample_342_241.h5

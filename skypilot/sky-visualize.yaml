@@ -1,0 +1,55 @@
+# SkyPilot: Generate Visualizations
+# Purpose: Generate plots from saved prediction results
+# Usage: sky exec onboard skypilot/sky-visualize.yaml --env RESULTS_PATH=outputs/predictions/results.pt
+#
+# Prerequisites:
+#   1. Cluster launched with sky-launch.yaml
+#   2. Predictions run (results.pt exists)
+#
+# Examples:
+#   sky exec onboard skypilot/sky-visualize.yaml --env RESULTS_PATH=outputs/predictions/results.pt
+#   sky exec onboard skypilot/sky-visualize.yaml --env RESULTS_PATH=outputs/predictions/results.pt --env "VIZ_OVERRIDES=visualization.vmin=-2"
+
+name: onboard-visualize
+
+envs:
+  RESULTS_PATH: ""
+  VIZ_OVERRIDES: ""
+
+run: |
+  echo "============================================"
+  echo "DeepJEB Visualization"
+  echo "============================================"
+  echo "Results: ${RESULTS_PATH}"
+  echo "Overrides: ${VIZ_OVERRIDES}"
+  echo "============================================"
+
+  cd ~/sky_workdir
+  export PATH="$HOME/.local/bin:$PATH"
+  source .venv/bin/activate
+
+  # Validate results path
+  if [ -z "${RESULTS_PATH}" ]; then
+    echo "ERROR: RESULTS_PATH is required"
+    echo "Usage: sky exec onboard skypilot/sky-visualize.yaml --env RESULTS_PATH=outputs/predictions/results.pt"
+    exit 1
+  fi
+
+  if [ ! -f "${RESULTS_PATH}" ]; then
+    echo "ERROR: Results file not found: ${RESULTS_PATH}"
+    echo "Run sky-predict.yaml first to generate results.pt"
+    exit 1
+  fi
+
+  # Run visualization
+  # VIZ_OVERRIDES format: "key1=val1 key2=val2" -> converted to "-o key1=val1 -o key2=val2"
+  if [ -n "${VIZ_OVERRIDES}" ]; then
+    OVERRIDE_ARGS=$(echo "${VIZ_OVERRIDES}" | sed 's/ / -o /g')
+    python -m tasks.deepjeb visualize -r ${RESULTS_PATH} -o ${OVERRIDE_ARGS}
+  else
+    python -m tasks.deepjeb visualize -r ${RESULTS_PATH}
+  fi
+
+  echo "============================================"
+  echo "Visualization completed!"
+  echo "============================================"

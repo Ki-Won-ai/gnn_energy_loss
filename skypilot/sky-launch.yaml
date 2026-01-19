@@ -1,0 +1,77 @@
+# SkyPilot: Launch Cluster
+# Purpose: Provision H100 cluster and install dependencies
+# Usage: sky launch -c onboard skypilot/sky-launch.yaml
+#
+# After launch, run:
+#   sky exec onboard skypilot/sky-prepare.yaml  # If NPZ not prepared
+#   sky exec onboard skypilot/sky-train.yaml    # Train model
+
+name: onboard-launch
+
+workdir: .
+
+num_nodes: 1
+
+resources:
+  infra: aws
+  accelerators: H100:1
+  disk_size: 256
+  cpus: 8+
+  memory: 32+
+
+  autostop:
+    idle_minutes: 60
+    down: true
+
+envs:
+  DATA_DIR: /data/DeepJEB
+  WANDB_API_KEY: ${WANDB_API_KEY}
+  MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
+  MLFLOW_TRACKING_TOKEN: ${MLFLOW_TRACKING_TOKEN}
+
+# Mount S3 data (both H5 source and prepared NPZ if exists)
+file_mounts:
+  /data/DeepJEB/processed:
+    name: deepjeb-h5
+    source: s3://ajp-skypilot-cache/processed
+    mode: COPY
+  /data/DeepJEB/prepared:
+    name: deepjeb-npz
+    source: s3://ajp-skypilot-cache/prepared
+    mode: COPY
+
+setup: |
+  echo "================================"
+  echo "Setting up training environment"
+  echo "================================"
+
+  # Install uv
+  if ! command -v uv &> /dev/null; then
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+    export PATH="$HOME/.local/bin:$PATH"
+  fi
+
+  cd ~/sky_workdir
+  uv venv --python 3.11
+
+  # Sync project deps first (this may install wrong torch version)
+  uv sync
+
+  # Force reinstall PyTorch with CUDA 12.1 (must be AFTER uv sync)
+  uv pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
+
+  # Install PyG extensions
+  uv pip install torch_scatter torch_sparse torch_cluster \
+    -f https://data.pyg.org/whl/torch-2.5.0+cu121.html
+
+  # Verify GPU
+  .venv/bin/python -c "import torch; print(f'PyTorch: {torch.__version__}'); print(f'CUDA: {torch.cuda.is_available()}'); print(f'GPU: {torch.cuda.get_device_name(0)}' if torch.cuda.is_available() else 'No GPU')"
+
+  echo "================================"
+  echo "Setup complete!"
+  echo ""
+  echo "Next steps:"
+  echo "  sky exec onboard skypilot/sky-prepare.yaml  # If NPZ not ready"
+  echo "  sky exec onboard skypilot/sky-train.yaml    # Train model"
+  echo "================================"

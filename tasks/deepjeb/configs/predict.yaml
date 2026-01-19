@@ -1,0 +1,45 @@
+# Prediction configuration for DeepJEB benchmark
+# Usage: uv run python -m tasks.deepjeb predict --model-checkpoint-path outputs/best.ckpt
+
+defaults:
+  - model: gatv2
+  - _self_
+
+# Data
+prepared_data: "${oc.env:DATA_DIR,/home/work/data/dataset/DEEPJEB}/prepared"
+output_dir: outputs/predictions-${now:%Y%m%d-%H%M}
+
+# Checkpoint (required, can be overridden via CLI)
+model_checkpoint_path: null
+
+# Inference settings
+training:
+  seed: 42
+  accelerator: gpu
+  devices: 1
+  precision: "bf16-mixed"
+
+# Metrics to compute
+metrics:
+  - r2
+  - mse
+  - rmse
+
+# DataLoader settings (batch_size=1 for per-sample predictions)
+dataloader:
+  predict:
+    batch_size: 1
+    shuffle: false
+    num_workers: 4
+    persistent_workers: true
+
+# Visualization settings (disabled by default, use 'visualize' command separately)
+visualization:
+  enabled: false
+  vmin: -1.0   # Min value for colormap (use normalized range)
+  vmax: 1.0    # Max value for colormap
+  error_vmax: 0.5  # Max value for error colormap
+  plot_comparison:
+    enabled: true
+  plot_scatter:
+    enabled: true

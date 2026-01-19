@@ -1,0 +1,64 @@
+# SkyPilot: Train Model
+# Purpose: Train GNN model using prepared NPZ files
+# Usage: sky exec onboard skypilot/sky-train.yaml
+#
+# Prerequisites:
+#   1. Cluster launched with sky-launch.yaml
+#   2. NPZ files prepared (either from S3 or via sky-prepare.yaml)
+#
+# Override training config:
+#   sky exec onboard skypilot/sky-train.yaml --env TRAIN_CONFIG=train-mini
+#   sky exec onboard skypilot/sky-train.yaml --env "TRAIN_OVERRIDES=model=gcn"
+#   sky exec onboard skypilot/sky-train.yaml --env "TRAIN_OVERRIDES=logging.name=my-run"
+
+name: onboard-train
+
+envs:
+  DATA_DIR: /data/DeepJEB
+  WANDB_API_KEY: ${WANDB_API_KEY}
+  MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
+  MLFLOW_TRACKING_TOKEN: ${MLFLOW_TRACKING_TOKEN}
+  TRAIN_CONFIG: train
+  TRAIN_OVERRIDES: ""
+
+run: |
+  echo "============================================"
+  echo "DeepJEB Training"
+  echo "============================================"
+  echo "DATA_DIR: ${DATA_DIR}"
+  echo "Config: ${TRAIN_CONFIG}"
+  echo "Overrides: ${TRAIN_OVERRIDES}"
+  echo "============================================"
+
+  cd ~/sky_workdir
+  export PATH="$HOME/.local/bin:$PATH"
+  source .venv/bin/activate
+
+  # Ensure GPU is visible (SkyPilot may not set this automatically)
+  export CUDA_VISIBLE_DEVICES=0
+
+  # Verify prepared data exists
+  NPZ_COUNT=$(ls -1 ${DATA_DIR}/prepared/*.npz 2>/dev/null | wc -l)
+  if [ "$NPZ_COUNT" -eq 0 ]; then
+    echo "ERROR: No NPZ files found in ${DATA_DIR}/prepared/"
+    echo "Run sky-prepare.yaml first: sky exec onboard skypilot/sky-prepare.yaml"
+    exit 1
+  fi
+  echo "Found $NPZ_COUNT prepared NPZ files"
+
+  # Show GPU info
+  nvidia-smi --query-gpu=name,memory.total --format=csv
+
+  # Run training
+  # Use venv python directly to avoid uv sync reinstalling packages
+  # TRAIN_OVERRIDES format: "key1=val1 key2=val2" -> converted to "-o key1=val1 -o key2=val2"
+  if [ -n "${TRAIN_OVERRIDES}" ]; then
+    OVERRIDE_ARGS=$(echo "${TRAIN_OVERRIDES}" | sed 's/ / -o /g')
+    python -m tasks.deepjeb train --config ${TRAIN_CONFIG} -o ${OVERRIDE_ARGS}
+  else
+    python -m tasks.deepjeb train --config ${TRAIN_CONFIG}
+  fi
+
+  echo "============================================"
+  echo "Training completed!"
+  echo "============================================"

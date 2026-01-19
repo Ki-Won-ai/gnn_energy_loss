@@ -1,0 +1,13 @@
+# Small dataset configuration for HDWIA
+# Quick sanity checks and rapid iteration
+
+# Dataset variant name
+name: "small"
+
+# Prepared data directory (used by train.yaml)
+# Overrides the prepared_data from train.yaml
+# prepared_data: "/path/to/hdwia/small"
+
+# DataLoader batch sizes
+# dataloader.train.batch_size: 2
+# dataloader.val.batch_size: 1

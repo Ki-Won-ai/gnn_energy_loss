@@ -1,0 +1,13 @@
+# SimpleGATv2 model configuration
+# GNN with multi-head attention mechanism
+# Expected HDWIA R²: TBD
+
+type: gatv2
+
+arch:
+  in_channels: 9           # pos(3) + curvature_weighted_norms(3) + norms(3)
+  hidden_channels: 128     # Hidden dimension (larger for GATv2)
+  num_layers: 4            # Number of GATv2 layers
+  out_channels: 1          # Output dimension (temperature prediction)
+  num_heads: 4             # Number of attention heads
+  dropout: 0.1             # Dropout rate

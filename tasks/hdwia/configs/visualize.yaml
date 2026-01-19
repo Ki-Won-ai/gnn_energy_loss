@@ -1,0 +1,16 @@
+# Visualization configuration for HDWIA task
+# Usage: uv run python -m tasks.hdwia visualize -r path/to/results.pt
+
+# Path to results.pt from predict command
+results_path: null  # Override with -r flag
+output_dir: outputs/visualizations
+
+# Visualization settings
+visualization:
+  vmin: -1.0
+  vmax: 1.0
+  error_vmax: 0.5
+  plot_comparison:
+    enabled: true
+  plot_scatter:
+    enabled: true

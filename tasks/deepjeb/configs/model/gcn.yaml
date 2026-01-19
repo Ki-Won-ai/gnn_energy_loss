@@ -1,0 +1,12 @@
+# SimpleGCN model configuration
+# Simplest GNN baseline
+# Expected DeepJEB R²: ~0.75-0.80
+
+type: gcn
+
+arch:
+  in_channels: 9          # pos(3) + curvature_weighted_norms(3) + norms(3)
+  hidden_channels: 64     # Hidden dimension (smaller for GCN)
+  num_layers: 4           # Number of GCN layers
+  out_channels: 1         # Output dimension (von_mises stress)
+  dropout: 0.1            # Dropout rate

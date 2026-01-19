@@ -1,0 +1,21 @@
+# Visualization configuration for DeepJEB benchmark
+# Usage: uv run python -m tasks.deepjeb visualize --results-path outputs/predictions/results.pt
+
+defaults:
+  - _self_
+
+# Path to saved results (required)
+results_path: null
+
+# Output directory for plots
+output_dir: outputs/visualizations-${now:%Y%m%d-%H%M}
+
+# Visualization settings
+visualization:
+  vmin: -1.0        # Min value for colormap (normalized range)
+  vmax: 1.0         # Max value for colormap
+  error_vmax: 0.5   # Max value for error colormap
+  plot_comparison:
+    enabled: true
+  plot_scatter:
+    enabled: true

@@ -1,0 +1,21 @@
+# Prediction configuration for HDWIA task
+# Usage: uv run python -m tasks.hdwia predict -m path/to/checkpoint.ckpt
+
+defaults:
+  - train
+  - _self_
+
+# Prediction-specific settings
+model_checkpoint_path: null  # Override with -m flag
+output_dir: outputs/predictions
+
+# Visualization settings
+visualization:
+  enabled: true
+  vmin: -1.0
+  vmax: 1.0
+  error_vmax: 0.5
+  plot_comparison:
+    enabled: true
+  plot_scatter:
+    enabled: true

@@ -1,0 +1,13 @@
+# Quick sanity check training configuration for HDWIA
+# Usage: uv run python -m tasks.hdwia train --config train-mini
+
+defaults:
+  - train
+  - _self_
+
+training:
+  max_epochs: 5
+
+logging:
+  name: "${model.type}-hdwia_sanity"
+  run_name: "${model.type}-hdwia_sanity"

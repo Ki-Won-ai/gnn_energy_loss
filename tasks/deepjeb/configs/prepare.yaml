@@ -1,0 +1,26 @@
+# Data preparation configuration
+# Usage: uv run python -m tasks.deepjeb prepare
+# Purpose: Convert HDF5 files to NPZ format for training
+
+defaults:
+  - dataset: base
+  - _self_
+
+# Source and output directories
+source_dir: "${oc.env:DATA_DIR,/home/work/data/dataset/DEEPJEB}/processed"
+output_dir: "${oc.env:DATA_DIR,/home/work/data/dataset/DEEPJEB}/prepared"
+
+# Feature configuration
+# Keys map to H5 file structure on 214 server
+feature:
+  pos_key: "coords"                 # Node positions (N, 3)
+  curvatures_key: "curvatures"      # Curvature values (N,) or (N, 1)
+  norms_key: "norm_vectors"         # Normal vectors (N, 3)
+  edge_key: "edges"                 # Edge connectivity (2, E)
+  target_key: "outputs[:,0,4]"      # Von Mises stress from outputs tensor
+  normalize_targets: true           # Apply z-score normalization to targets
+  center_positions: true            # Center positions to origin
+  normalize_scale: true             # Normalize position scale
+
+# Processing
+num_workers: 8

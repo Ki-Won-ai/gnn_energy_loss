@@ -1,0 +1,13 @@
+# SimpleGATv2 model configuration (default)
+# GNN with attention mechanism
+# Expected DeepJEB R²: ~0.85-0.90
+
+type: gatv2
+
+arch:
+  in_channels: 9          # pos(3) + curvature_weighted_norms(3) + norms(3)
+  hidden_channels: 128    # Hidden dimension
+  num_layers: 4           # Number of GATv2 layers
+  heads: 4                # Number of attention heads
+  out_channels: 1         # Output dimension (von_mises stress)
+  dropout: 0.1            # Dropout rate

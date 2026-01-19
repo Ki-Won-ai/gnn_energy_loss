@@ -1,0 +1,76 @@
+# Main training configuration for HDWIA benchmark
+# Usage: uv run python -m tasks.hdwia train
+
+defaults:
+  - model: gatv2
+  - _self_
+
+# Data
+prepared_data: "${oc.env:DATA_DIR,/home/work/data/dataset/HDWIA}/prepared"
+output_dir: outputs/${model.type}-${now:%Y%m%d-%H%M}
+
+# Training settings
+training:
+  seed: 42
+  max_epochs: 100
+  accelerator: gpu
+  devices: 1
+  precision: "bf16-mixed"
+  grad_clip_val: 1.0
+  log_every_n_steps: 10
+  accumulate_grad_batches: 1
+  deterministic: false
+  resume_from_ckpt: null
+
+# Optimizer settings
+optimizer:
+  lr: 1e-3
+  weight_decay: 0.01
+  eta_min: 1e-6
+  betas: [0.9, 0.95]
+  eps: 1e-6
+  warmup_epochs: 5
+
+# Metrics to track
+metrics:
+  - r2
+  - mse
+  - rmse
+
+# DataLoader settings
+dataloader:
+  train:
+    batch_size: 4
+    shuffle: true
+    num_workers: 4
+    persistent_workers: true
+  val:
+    batch_size: 1
+    shuffle: false
+    num_workers: 4
+    persistent_workers: true
+
+# Callbacks
+callbacks:
+  checkpoint:
+    monitor: "val/loss"
+    mode: "min"
+    save_top_k: 3
+    save_last: true
+  early_stopping:
+    enabled: false
+    monitor: "val/loss"
+    patience: 10
+    mode: "min"
+
+# Logging
+# Auto-detect: uses WandB if WANDB_API_KEY set, MLflow if MLFLOW_TRACKING_URI set
+# Both can be active simultaneously if both env vars are present
+logging:
+  enabled: true
+  project: "onboard-gnn-hdwia"           # WandB project / MLflow experiment name
+  experiment_name: "onboard-gnn-hdwia"   # MLflow experiment (fallback to project)
+  name: "${model.type}-hdwia_trial"      # Run name (both loggers)
+  run_name: "${model.type}-hdwia_trial"  # MLflow run name (fallback to name)
+  tags: ["${model.type}", "hdwia"]
+  notes: null

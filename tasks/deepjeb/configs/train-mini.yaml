@@ -1,0 +1,73 @@
+# Quick sanity check configuration
+# Usage: uv run python -m tasks.deepjeb train --config train-mini
+# Purpose: Verify the training pipeline works (5 epochs, no logging)
+
+defaults:
+  - model: gatv2
+  - _self_
+
+# Data
+prepared_data: "${oc.env:DATA_DIR,/home/work/data/dataset/DEEPJEB}/prepared"
+output_dir: outputs/mini-${model.type}-${now:%Y%m%d-%H%M}
+
+# Training settings (minimal for quick test)
+training:
+  seed: 42
+  max_epochs: 5
+  accelerator: gpu
+  devices: 1
+  precision: "bf16-mixed"
+  grad_clip_val: 1.0
+  log_every_n_steps: 1
+  accumulate_grad_batches: 1
+  deterministic: false
+  resume_from_ckpt: null
+
+# Optimizer settings
+optimizer:
+  lr: 1e-3
+  weight_decay: 0.01
+  eta_min: 1e-6
+  betas: [0.9, 0.95]
+  eps: 1e-6
+  warmup_epochs: 1
+
+# Metrics to track
+metrics:
+  - r2
+  - mse
+  - rmse
+
+# DataLoader settings
+dataloader:
+  train:
+    batch_size: 2
+    shuffle: true
+    num_workers: 2
+    persistent_workers: false
+  val:
+    batch_size: 1
+    shuffle: false
+    num_workers: 2
+    persistent_workers: false
+
+# Callbacks
+callbacks:
+  checkpoint:
+    monitor: "val/loss"
+    mode: "min"
+    save_top_k: 1
+    save_last: false
+  early_stopping:
+    enabled: false
+    monitor: "val/loss"
+    patience: 10
+    mode: "min"
+
+# Logging disabled for quick tests
+logging:
+  enabled: false
+  project: "onboard-gnn-deepjeb"
+  name: null
+  tags: ["${model.type}", "deepjeb", "sanity-check"]
+  notes: null

@@ -1,0 +1,63 @@
+# SkyPilot: Prepare Data (H5 → NPZ)
+# Purpose: Convert H5 files to NPZ format
+# Usage: sky exec onboard skypilot/sky-prepare.yaml
+#
+# Prerequisites: Cluster launched with sky-launch.yaml
+#
+# After preparation, upload NPZ to S3:
+#   ssh onboard
+#   aws s3 sync /data/DeepJEB/prepared s3://deepjeb/prepared
+
+name: onboard-prepare
+
+envs:
+  DATA_DIR: /data/DeepJEB
+
+run: |
+  echo "============================================"
+  echo "DeepJEB Data Preparation (H5 → NPZ)"
+  echo "============================================"
+  echo "DATA_DIR: ${DATA_DIR}"
+  echo "Source: ${DATA_DIR}/processed (H5 files)"
+  echo "Output: ${DATA_DIR}/prepared (NPZ files)"
+  echo "============================================"
+
+  cd ~/sky_workdir
+  export PATH="$HOME/.local/bin:$PATH"
+
+  # Check if already prepared
+  NPZ_COUNT=$(ls -1 ${DATA_DIR}/prepared/*.npz 2>/dev/null | wc -l)
+  if [ "$NPZ_COUNT" -gt 100 ]; then
+    echo "Found $NPZ_COUNT NPZ files. Data already prepared!"
+    echo "Skipping preparation. Run sky-train.yaml to train."
+    exit 0
+  fi
+
+  # Check H5 source files
+  H5_COUNT=$(ls -1 ${DATA_DIR}/processed/*.h5 2>/dev/null | wc -l)
+  echo "Found $H5_COUNT H5 files to convert"
+
+  if [ "$H5_COUNT" -eq 0 ]; then
+    echo "ERROR: No H5 files found in ${DATA_DIR}/processed/"
+    echo "Make sure s3://deepjeb/processed contains H5 files"
+    exit 1
+  fi
+
+  # Create output directory
+  mkdir -p ${DATA_DIR}/prepared
+
+  # Run preparation
+  uv run python -m tasks.deepjeb prepare
+
+  echo "============================================"
+  echo "Preparation complete!"
+  echo ""
+  echo "NPZ files saved to: ${DATA_DIR}/prepared"
+  echo ""
+  echo "To upload to S3 for future runs:"
+  echo "  ssh onboard"
+  echo "  aws s3 sync ${DATA_DIR}/prepared s3://deepjeb/prepared"
+  echo ""
+  echo "To train now:"
+  echo "  sky exec onboard skypilot/sky-train.yaml"
+  echo "============================================"

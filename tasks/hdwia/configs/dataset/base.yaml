@@ -1,0 +1,13 @@
+# Base dataset configuration for HDWIA
+# Full dataset for production training
+
+# Dataset variant name
+name: "base"
+
+# Prepared data directory (used by train.yaml)
+# Overrides the prepared_data from train.yaml
+# prepared_data: "/path/to/hdwia/prepared"
+
+# DataLoader batch sizes (can be overridden from train.yaml)
+# dataloader.train.batch_size: 4
+# dataloader.val.batch_size: 1

@@ -1,0 +1,11 @@
+# Configuration for data preparation (H5 -> NPZ conversion)
+# Usage: uv run python -m tasks.hdwia prepare
+
+# Path to raw H5 files
+raw_data_dir: "${oc.env:DATA_DIR,/home/work/data/dataset}/HDWIA"
+# output_dir will be auto-created by preparation script
+
+# Preparation settings (customize for HDWIA data)
+num_workers: 8           # Parallel H5 loading
+chunk_size: 128          # Samples per chunk when saving
+overwrite_cache: false   # Skip re-preparation if cache exists
